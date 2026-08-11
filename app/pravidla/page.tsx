@@ -50,7 +50,7 @@ export default async function RulesPage() {
           <li>
             Čím <span className="font-semibold">méně lidí</span> tipovalo
             stejného hráče jako ty, tím víc bodů dostaneš, pokud to vyjde. Tip
-            na jasného favorita, kterého tipuje "každý", vynese méně bodů,
+            na jasného favorita, kterého tipuje „každý“, vynese méně bodů,
             protože to nebyl žádný risk.
           </li>
           <li>
