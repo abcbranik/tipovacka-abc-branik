@@ -18,8 +18,12 @@ export default function RosterManager({
 }) {
   const router = useRouter();
   const [name, setName] = useState("");
+  const [bulkNames, setBulkNames] = useState("");
   const [loading, setLoading] = useState(false);
+  const [bulkLoading, setBulkLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
+  const [bulkError, setBulkError] = useState<string | null>(null);
+  const [bulkResult, setBulkResult] = useState<string | null>(null);
 
   async function addPlayer(e: React.FormEvent) {
     e.preventDefault();
@@ -39,6 +43,46 @@ export default function RosterManager({
     }
     setName("");
     router.refresh();
+  }
+
+  async function addBulkPlayers(e: React.FormEvent) {
+    e.preventDefault();
+    setBulkError(null);
+    setBulkResult(null);
+    const names = bulkNames
+      .split("\n")
+      .map((n) => n.trim())
+      .filter((n) => n.length > 0);
+    if (names.length === 0) return;
+    setBulkLoading(true);
+    try {
+      const res = await fetch("/api/admin/players", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ teamId, names }),
+      });
+      const data = await res.json();
+      setBulkLoading(false);
+      if (!res.ok) {
+        setBulkError(data.error || "Hráče se nepodařilo přidat.");
+        return;
+      }
+      setBulkNames("");
+      const parts: string[] = [];
+      if (data.created?.length) {
+        parts.push(`přidáno ${data.created.length}: ${data.created.join(", ")}`);
+      }
+      if (data.skipped?.length) {
+        parts.push(
+          `přeskočeno (už existují) ${data.skipped.length}: ${data.skipped.join(", ")}`
+        );
+      }
+      setBulkResult(parts.join(" · ") || "Nic k přidání.");
+      router.refresh();
+    } catch (err: any) {
+      setBulkLoading(false);
+      setBulkError(`Nastala chyba: ${err?.message || String(err)}`);
+    }
   }
 
   async function toggleActive(playerId: number, active: boolean) {
@@ -73,7 +117,8 @@ export default function RosterManager({
           </li>
         ))}
       </ul>
-      <form onSubmit={addPlayer} className="flex gap-2">
+
+      <form onSubmit={addPlayer} className="flex gap-2 mb-4">
         <input
           className="input"
           placeholder="Jméno nového hráče"
@@ -84,7 +129,38 @@ export default function RosterManager({
           Přidat hráče
         </button>
       </form>
-      {error && <p className="text-sm text-red-700 mt-2">{error}</p>}
+      {error && <p className="text-sm text-red-700 mb-4">{error}</p>}
+
+      <details className="border-t pt-3">
+        <summary className="text-sm font-semibold cursor-pointer">
+          Hromadně vložit celou soupisku
+        </summary>
+        <form onSubmit={addBulkPlayers} className="mt-3 space-y-2">
+          <p className="text-xs text-gray-500">
+            Vlož jedno jméno hráče na řádek (klidně zkopírované odjinud) a
+            klikni na „Přidat všechny“. Hráči, kteří už v soupisce jsou, se
+            automaticky přeskočí.
+          </p>
+          <textarea
+            className="input"
+            rows={6}
+            placeholder={"Jan Novák\nPetr Svoboda\nTomáš Dvořák"}
+            value={bulkNames}
+            onChange={(e) => setBulkNames(e.target.value)}
+          />
+          <button
+            type="submit"
+            disabled={bulkLoading}
+            className="btn-primary whitespace-nowrap"
+          >
+            {bulkLoading ? "Ukládám..." : "Přidat všechny"}
+          </button>
+        </form>
+        {bulkError && <p className="text-sm text-red-700 mt-2">{bulkError}</p>}
+        {bulkResult && (
+          <p className="text-sm text-club-primary mt-2">{bulkResult}</p>
+        )}
+      </details>
     </div>
   );
 }
