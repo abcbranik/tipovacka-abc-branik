@@ -34,13 +34,25 @@ export default async function DashboardPage() {
   });
   const tipByMatchId = new Map(myTips.map((t) => [t.matchId, t]));
 
+  const currentRound =
+    upcomingMatches.length > 0
+      ? Math.min(...upcomingMatches.map((m) => m.round))
+      : null;
+
   return (
     <div className="space-y-10">
       <h1 className="text-2xl font-bold text-club-primary">Přehled</h1>
 
+      {currentRound !== null && (
+        <p className="text-sm text-gray-500">
+          K tipování je aktuálně otevřené soutěžní kolo {currentRound}.
+          Další kolo se otevře, až budou zadané výsledky za toto kolo.
+        </p>
+      )}
+
       {teams.map((team) => {
         const teamUpcoming = upcomingMatches
-          .filter((m) => m.teamId === team.id)
+          .filter((m) => m.teamId === team.id && m.round === currentRound)
           .slice(0, 3);
         const teamFinished = finishedMatches
           .filter((m) => m.teamId === team.id)
