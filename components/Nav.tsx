@@ -19,6 +19,7 @@ export default function Nav({ name, role }: NavProps) {
     { href: "/leaderboard", label: "Žebříček" },
     { href: "/pravidla", label: "Pravidla" },
     ...(isAdmin ? [{ href: "/admin", label: "Administrace" }] : []),
+    ...(isAdmin ? [{ href: "/admin/tips", label: "Tipy hráčů" }] : []),
     ...(role === "SUPERADMIN"
       ? [{ href: "/admin/users", label: "Uživatelé" }]
       : []),
