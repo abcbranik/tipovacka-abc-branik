@@ -8,9 +8,14 @@
     "build": "prisma generate && prisma db push --accept-data-loss --skip-generate && npm run seed && next build",
     "start": "next start",
     "lint": "next lint",
-    "seed": "ts-node --compiler-options {\"module\":\"CommonJS\"} prisma/seed.ts",
+    "seed": "ts-node prisma/seed.ts",
     "prisma:generate": "prisma generate",
     "prisma:push": "prisma db push"
+  },
+  "ts-node": {
+    "compilerOptions": {
+      "module": "CommonJS"
+    }
   },
   "dependencies": {
     "@prisma/adapter-pg": "6.19.3",
