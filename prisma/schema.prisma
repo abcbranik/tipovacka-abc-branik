@@ -3,15 +3,16 @@
 // This copy of the schema targets Postgres (Neon) for the live deployment
 // on Vercel - see README.md. The version in the standalone source zip
 // (for quick local trials without any cloud accounts) uses SQLite instead;
-// the only difference is this datasource block and the driver adapter
-// wired up in lib/prisma.ts.
+// the only difference is this datasource block.
 //
-// engineType = "client" generates a pure TypeScript/WASM query compiler
-// with no native Rust engine binary at all (Prisma's "driver adapters"
-// architecture), paired with @prisma/adapter-pg in lib/prisma.ts.
+// Standard engine type (downloads the native query engine binary at
+// `prisma generate` time, on Vercel's build servers). This is the
+// well-tested, default Prisma setup for Node.js serverless functions -
+// the WASM "client" engine type was tried during development but its
+// query_compiler_bg.wasm file wasn't being included in Vercel's function
+// bundle, causing ENOENT errors at runtime.
 generator client {
-  provider   = "prisma-client-js"
-  engineType = "client"
+  provider = "prisma-client-js"
 }
 
 datasource db {

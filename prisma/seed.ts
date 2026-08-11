@@ -1,13 +1,12 @@
 import { PrismaClient } from "@prisma/client";
-import { PrismaPg } from "@prisma/adapter-pg";
 import bcrypt from "bcryptjs";
 
-// See lib/prisma.ts for why a driver adapter is used instead of the default
-// native query engine. This seed runs automatically as part of `npm run
-// build` (see package.json) so the four teams + superadmin exist right
-// after the first deploy - it's idempotent (safe to run on every build).
-const adapter = new PrismaPg({ connectionString: process.env.DATABASE_URL });
-const prisma = new PrismaClient({ adapter });
+// See lib/prisma.ts for why this uses the standard Prisma Client (native
+// query engine, no driver adapter). This seed runs automatically as part of
+// `npm run build` (see package.json) so the four teams + superadmin exist
+// right after the first deploy - it's idempotent (safe to run on every
+// build).
+const prisma = new PrismaClient();
 
 // Seeds the four club teams and a placeholder starting roster for each, plus
 // a single SUPERADMIN account. Deliberately does NOT seed fake matches or
