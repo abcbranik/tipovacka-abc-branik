@@ -28,31 +28,48 @@ export default function RegisterPage() {
     }
 
     setLoading(true);
-    const res = await fetch("/api/register", {
-      method: "POST",
-      headers: { "Content-Type": "application/json" },
-      body: JSON.stringify({ name, password, confirmPassword }),
-    });
-    const data = await res.json();
+    try {
+      const res = await fetch("/api/register", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ name, password, confirmPassword }),
+      });
 
-    if (!res.ok) {
+      let data: any = null;
+      try {
+        data = await res.json();
+      } catch {
+        setLoading(false);
+        setError(
+          `Server odpověděl neočekávaně (stav ${res.status}). Zkus to prosím znovu.`
+        );
+        return;
+      }
+
+      if (!res.ok) {
+        setLoading(false);
+        setError(data.error || "Registraci se nepodařilo dokončit.");
+        return;
+      }
+
+      const signInRes = await signIn("credentials", {
+        name,
+        password,
+        redirect: false,
+      });
       setLoading(false);
-      setError(data.error || "Registraci se nepodařilo dokončit.");
-      return;
+      if (signInRes?.error) {
+        router.push("/login");
+        return;
+      }
+      router.push("/");
+      router.refresh();
+    } catch (err: any) {
+      setLoading(false);
+      setError(
+        `Nastala neočekávaná chyba: ${err?.message || String(err)}`
+      );
     }
-
-    const signInRes = await signIn("credentials", {
-      name,
-      password,
-      redirect: false,
-    });
-    setLoading(false);
-    if (signInRes?.error) {
-      router.push("/login");
-      return;
-    }
-    router.push("/");
-    router.refresh();
   }
 
   return (

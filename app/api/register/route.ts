@@ -36,23 +36,35 @@ export async function POST(req: Request) {
     );
   }
 
-  const existing = await findUserByNameCaseInsensitive(name);
-  if (existing) {
+  try {
+    const existing = await findUserByNameCaseInsensitive(name);
+    if (existing) {
+      return NextResponse.json(
+        { error: "Toto jméno je již zabrané. Zvol prosím jiné." },
+        { status: 409 }
+      );
+    }
+
+    const passwordHash = await bcrypt.hash(password, 10);
+
+    const user = await prisma.user.create({
+      data: {
+        name,
+        passwordHash,
+        role: "MEMBER",
+      },
+    });
+
+    return NextResponse.json({ id: user.id, name: user.name });
+  } catch (err: any) {
+    // Temporary: surface the real error message in the response so we can
+    // diagnose deployment/database issues directly from the browser, without
+    // needing to dig through Vercel's server logs. Remove/soften this once
+    // the app is stable (don't leak internals to end users long-term).
+    console.error("Registration failed:", err);
     return NextResponse.json(
-      { error: "Toto jméno je již zabrané. Zvol prosím jiné." },
-      { status: 409 }
+      { error: `Chyba serveru: ${err?.message || String(err)}` },
+      { status: 500 }
     );
   }
-
-  const passwordHash = await bcrypt.hash(password, 10);
-
-  const user = await prisma.user.create({
-    data: {
-      name,
-      passwordHash,
-      role: "MEMBER",
-    },
-  });
-
-  return NextResponse.json({ id: user.id, name: user.name });
 }
