@@ -1,0 +1,114 @@
+// Prisma schema for "tipovačka" - a football club prediction pool app.
+//
+// This copy of the schema targets Postgres (Neon) for the live deployment
+// on Vercel - see README.md. The version in the standalone source zip
+// (for quick local trials without any cloud accounts) uses SQLite instead;
+// the only difference is this datasource block and the driver adapter
+// wired up in lib/prisma.ts.
+//
+// engineType = "client" generates a pure TypeScript/WASM query compiler
+// with no native Rust engine binary at all (Prisma's "driver adapters"
+// architecture), paired with @prisma/adapter-pg in lib/prisma.ts.
+generator client {
+  provider   = "prisma-client-js"
+  engineType = "client"
+}
+
+datasource db {
+  provider = "postgresql"
+  url      = env("DATABASE_URL")
+}
+
+// NOTE on enums: kept as plain String columns (rather than native Postgres
+// enums) so this schema stays identical in shape to the SQLite version used
+// for local dev. The allowed values are defined as TypeScript union types /
+// constants in lib/types.ts and validated in application code (API routes).
+// would let you convert these to real Prisma enums if desired, but it is
+// not required - String columns work fine on Postgres too.
+
+model User {
+  id           Int         @id @default(autoincrement())
+  name         String      @unique
+  passwordHash String
+  role         String      @default("MEMBER") // "SUPERADMIN" | "ADMIN" | "MEMBER"
+  createdAt    DateTime    @default(now())
+  adminTeams   AdminTeam[]
+  tips         Tip[]
+}
+
+// Explicit many-to-many join between an ADMIN user and the teams they manage.
+// SUPERADMIN users implicitly manage all teams and do not need rows here.
+model AdminTeam {
+  id     Int  @id @default(autoincrement())
+  userId Int
+  teamId Int
+  user   User @relation(fields: [userId], references: [id], onDelete: Cascade)
+  team   Team @relation(fields: [teamId], references: [id], onDelete: Cascade)
+
+  @@unique([userId, teamId])
+}
+
+model Team {
+  id         Int         @id @default(autoincrement())
+  name       String      @unique
+  slug       String      @unique
+  players    Player[]
+  matches    Match[]
+  adminTeams AdminTeam[]
+}
+
+model Player {
+  id       Int      @id @default(autoincrement())
+  teamId   Int
+  name     String
+  active   Boolean  @default(true)
+  team     Team     @relation(fields: [teamId], references: [id], onDelete: Cascade)
+  scorers  MatchScorer[]
+  tips     Tip[]
+}
+
+model Match {
+  id              Int           @id @default(autoincrement())
+  teamId          Int
+  round           Int
+  opponent        String
+  venue           String        // "HOME" | "AWAY"
+  kickoffAt       DateTime
+  status          String        @default("SCHEDULED") // "SCHEDULED" | "FINISHED"
+  ourScore        Int?
+  opponentScore   Int?
+  team            Team          @relation(fields: [teamId], references: [id], onDelete: Cascade)
+  scorers         MatchScorer[]
+  tips            Tip[]
+}
+
+// One row per player who scored at least one goal for our team in a given
+// match (the real, admin-entered result). Used to check tips' scorer picks.
+model MatchScorer {
+  id       Int    @id @default(autoincrement())
+  matchId  Int
+  playerId Int
+  match    Match  @relation(fields: [matchId], references: [id], onDelete: Cascade)
+  player   Player @relation(fields: [playerId], references: [id], onDelete: Cascade)
+
+  @@unique([matchId, playerId])
+}
+
+model Tip {
+  id                 Int      @id @default(autoincrement())
+  userId             Int
+  matchId            Int
+  predOurScore       Int
+  predOpponentScore  Int
+  predictedPlayerId  Int?
+  resultPoints       Int?
+  scorerPoints       Int?
+  totalPoints        Int?
+  createdAt          DateTime @default(now())
+  updatedAt          DateTime @updatedAt
+  user               User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+  match              Match    @relation(fields: [matchId], references: [id], onDelete: Cascade)
+  predictedPlayer    Player?  @relation(fields: [predictedPlayerId], references: [id], onDelete: SetNull)
+
+  @@unique([userId, matchId])
+}
