@@ -53,7 +53,7 @@ export default function FixtureManager({
                   vs {m.opponent} ({venueLabel(m.venue)})
                 </div>
                 <div className="text-xs text-gray-500">
-                  kolo {m.round} · {formatKickoff(new Date(m.kickoffAt))}
+                  soutěžní kolo {m.round} · {formatKickoff(new Date(m.kickoffAt))}
                 </div>
               </div>
               <div className="text-right">

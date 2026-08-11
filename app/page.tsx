@@ -73,7 +73,7 @@ export default async function DashboardPage() {
                           </span>
                         </div>
                         <div className="text-xs text-gray-500 whitespace-nowrap">
-                          kolo {match.round}
+                          soutěžní kolo {match.round}
                         </div>
                       </div>
                       <div className="text-sm text-gray-600">
@@ -129,7 +129,7 @@ export default async function DashboardPage() {
                           </span>
                         </div>
                         <div className="text-xs text-gray-500 whitespace-nowrap">
-                          kolo {match.round}
+                          soutěžní kolo {match.round}
                         </div>
                       </div>
                       <div className="text-sm text-gray-600">

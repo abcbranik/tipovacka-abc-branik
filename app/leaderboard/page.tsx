@@ -88,7 +88,7 @@ export default async function LeaderboardPage({
                 selectedRound === round ? "btn-primary text-sm" : "btn-secondary text-sm"
               }
             >
-              Kolo {round}
+              Soutěžní kolo {round}
             </Link>
           ))}
         </div>

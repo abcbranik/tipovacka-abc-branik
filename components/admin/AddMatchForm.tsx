@@ -45,7 +45,7 @@ export default function AddMatchForm({ teamId }: { teamId: number }) {
       {error && <p className="text-sm text-red-700">{error}</p>}
       <div className="grid grid-cols-2 gap-3">
         <div>
-          <label className="label">Kolo</label>
+          <label className="label">Soutěžní kolo</label>
           <input
             className="input"
             type="number"
@@ -53,6 +53,11 @@ export default function AddMatchForm({ teamId }: { teamId: number }) {
             onChange={(e) => setRound(e.target.value)}
             required
           />
+          <p className="text-xs text-gray-500 mt-1">
+            Číslo kola tipovačky – nemusí přesně sedět se skutečným číslem
+            kola dané soutěže (např. u kategorií, které začínají o týden
+            později).
+          </p>
         </div>
         <div>
           <label className="label">Místo</label>
