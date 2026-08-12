@@ -24,6 +24,7 @@ export default function RosterManager({
   const [error, setError] = useState<string | null>(null);
   const [bulkError, setBulkError] = useState<string | null>(null);
   const [bulkResult, setBulkResult] = useState<string | null>(null);
+  const [deleteError, setDeleteError] = useState<string | null>(null);
 
   async function addPlayer(e: React.FormEvent) {
     e.preventDefault();
@@ -94,6 +95,20 @@ export default function RosterManager({
     router.refresh();
   }
 
+  async function deletePlayer(playerId: number, name: string) {
+    setDeleteError(null);
+    if (!window.confirm(`Opravdu trvale smazat hráče „${name}“?`)) return;
+    const res = await fetch(`/api/admin/players/${playerId}`, {
+      method: "DELETE",
+    });
+    const data = await res.json();
+    if (!res.ok) {
+      setDeleteError(data.error || "Hráče se nepodařilo smazat.");
+      return;
+    }
+    router.refresh();
+  }
+
   return (
     <div className="card">
       <h3 className="font-semibold mb-3">Soupiska hráčů</h3>
@@ -108,15 +123,26 @@ export default function RosterManager({
             <span className={p.active ? "" : "text-gray-400 line-through"}>
               {p.name}
             </span>
-            <button
-              onClick={() => toggleActive(p.id, !p.active)}
-              className={p.active ? "btn-secondary text-xs" : "btn-primary text-xs"}
-            >
-              {p.active ? "Deaktivovat" : "Aktivovat"}
-            </button>
+            <span className="flex gap-2">
+              <button
+                onClick={() => toggleActive(p.id, !p.active)}
+                className={p.active ? "btn-secondary text-xs" : "btn-primary text-xs"}
+              >
+                {p.active ? "Deaktivovat" : "Aktivovat"}
+              </button>
+              {!p.active && (
+                <button
+                  onClick={() => deletePlayer(p.id, p.name)}
+                  className="btn-secondary text-xs text-red-700"
+                >
+                  Smazat
+                </button>
+              )}
+            </span>
           </li>
         ))}
       </ul>
+      {deleteError && <p className="text-sm text-red-700 mb-4">{deleteError}</p>}
 
       <form onSubmit={addPlayer} className="flex gap-2 mb-4">
         <input
